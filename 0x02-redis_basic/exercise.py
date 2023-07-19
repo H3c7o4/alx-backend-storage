@@ -5,6 +5,26 @@ Module that contains the class Cache
 import redis
 import uuid
 from typing import Union, Callable, Optional, Any
+from functools import wraps
+
+
+def count_calls(method: Callable) -> Callable:
+    """
+
+    Args:
+       method: method calls from cache object
+
+    Returns:
+         A callable
+    """
+    key = method.__qualname__
+
+    @wraps(method)
+    def wrapper(self, *args, **kwargs):
+        """ Wrapped function """
+        self._redis.incr(key)
+        return method(self, *args, **kwargs)
+    return wrapper
 
 
 class Cache(object):
@@ -14,6 +34,7 @@ class Cache(object):
         self._redis = redis.Redis()
         self._redis.flushdb()
 
+    @count_calls
     def store(self, data: Union[str, bytes, int, float]) -> str:
         """
 
@@ -28,7 +49,7 @@ class Cache(object):
         return key
 
     def get(self, key: str,
-            fn: Optional[Callable]) -> Union[str, bytes, int, float]:
+            fn: Optional[Callable] = None) -> Union[str, bytes, int, float]:
         """
 
         Args:
