@@ -10,6 +10,7 @@ from functools import wraps
 
 def replay(function: Callable) -> None:
     """
+    display the history of calls of a particular function
     """
     key = function.__qualname__
     ins = key + ":inputs"
