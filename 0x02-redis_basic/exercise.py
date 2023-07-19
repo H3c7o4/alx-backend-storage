@@ -8,6 +8,23 @@ from typing import Union, Callable, Optional, Any
 from functools import wraps
 
 
+def replay(function: Callable) -> None:
+    """
+    """
+    key = function.__qualname__
+    ins = key + ":inputs"
+    outs = key + ":outputs"
+    redis = function.__self__._redis
+    count = redis.get(key).decode("utf-8")
+    print(f"{key} was called {count} times")
+    ins_list = redis.lrange(ins, 0, -1)
+    outs_list = redis.lrange(outs, 0, -1)
+    redis_zipped = list(zip(ins_list, outs_list))
+    for a, b in redis_zipped:
+        attr, data = a.decode("utf-8"), b.decode("utf-8")
+        print(f"{key}(*{attr}) -> {data}")
+
+
 def count_calls(method: Callable) -> Callable:
     """
 
